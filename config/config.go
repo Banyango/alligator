@@ -19,7 +19,7 @@ type Proxy struct {
 	Rules []Rule
 }
 
-func NewConfig(fileContents string) (*Config, error) {
+func New(fileContents string) (*Config, error) {
 	var config Config
 
 	if _, err := toml.Decode(fileContents, &config); err != nil {

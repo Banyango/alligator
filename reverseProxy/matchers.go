@@ -1,8 +1,14 @@
-package router
+package reverseProxy
 
 import (
 	"net/http"
 	"regexp"
+)
+
+const (
+	Matcher_Path_Type = "path"
+	Matcher_Host_Type = "host"
+	Matcher_Header_Type = "header"
 )
 
 type Matcher interface {

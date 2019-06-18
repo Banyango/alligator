@@ -19,7 +19,7 @@ Scheme= "http"
 `
 
 func TestNewConfig(t *testing.T) {
-	config, err := NewConfig(tomlString)
+	config, err := New(tomlString)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(config.Proxy))
 

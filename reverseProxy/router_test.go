@@ -1,4 +1,4 @@
-package router
+package reverseProxy
 
 import (
 	"github.com/Banyango/Alligator/config"
@@ -19,7 +19,7 @@ func TestRouter_BuildRoutes(t *testing.T) {
 		{Name: "Test", Host: "www.reddit.com", Scheme: "http", Path: "/", Rules: []config.Rule{{Type: "host", Pattern: []string{"www.example.com"}}}},
 	}}
 
-	router := Router{}
+	router := ReverseProxyServer{}
 
 	router.BuildRoutes(mockConfig)
 
@@ -60,7 +60,7 @@ func TestRouter_BuildProxy(t *testing.T) {
 		{Name: "Test", Host: backendUrl.Host, Scheme: "http", Path: "", Rules: []config.Rule{{Type: "host", Pattern: []string{"[localhost:5186]"}}}},
 	}}
 
-	router := Router{}
+	router := ReverseProxyServer{}
 	router.BuildRoutes(mockConfig)
 
 	proxy := router.BuildProxy()

@@ -1,4 +1,4 @@
-package router
+package reverseProxy
 
 import (
 	"github.com/stretchr/testify/assert"
