@@ -11,6 +11,7 @@ type Endpoint struct {
 	Name string
 	Host string
 	Path string
+	Scheme string
 }
 
 func NewEndpoint(name string, host string, path string) *Endpoint {
@@ -23,6 +24,7 @@ func (e *Endpoint) TransformRequest(request *http.Request) {
 	request.Host = e.Host
 	request.URL.Path = e.Path
 	request.URL.Host = e.Host
+	request.URL.Scheme = e.Scheme
 }
 
 func (e *Endpoint) setHeaders(request *http.Request) {
