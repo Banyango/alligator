@@ -17,7 +17,7 @@ const banner = `
 \____|__  /____/____/__\___  (____  /__|  \____/|__|   
         \/            /_____/     \/                   
 
-Proxy Starting up on port 8080
+Reverse Proxy Starting up on port 8080
 `
 
 func main() {

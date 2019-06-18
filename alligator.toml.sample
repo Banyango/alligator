@@ -1,10 +1,12 @@
+CacheSize = 10485760
+
 [[Proxy]]
-Path = "/images"
-Host = "www.google.com"
+Path = "/whyhellothere"
+Host = "localhost:5000"
 Scheme= "http"
 	[[Proxy.Rules]]
 		Type = "host"
-		Pattern = ["www.facebook.com", "www.instagram.com"]
+		Pattern = ["localhost:3000"]
 	[[Proxy.Rules]]
 		Type = "path"
 		Pattern = [".hello/."]

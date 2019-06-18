@@ -13,3 +13,9 @@ gofmt:
 
 gotest:
 	@ go test ./...
+
+build: clean create-dist
+	$(info Building...)
+	@ cp alligator.toml.sample ./.dist/alligator.toml
+	@ go build -o ./.dist/alligator main.go
+	@ cd ./.dist; ./alligator

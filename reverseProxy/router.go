@@ -17,18 +17,17 @@ type Route struct {
 type ReverseProxyServer struct {
 	Routes []*Route
 	Cache *cache.Cache
-	ErrorHandler http.Handler
 }
 
 func New(config config.Config) *ReverseProxyServer {
 	server := ReverseProxyServer{
-		Cache: cache.NewCache(10 * 1024),
+		Cache: cache.NewCache(config.CacheSize),
 	}
 	server.buildRoutes(config)
 	return &server
 }
 
-func (r *ReverseProxyServer) FindRoute(request *http.Request) *Route {
+func (r *ReverseProxyServer) findRoute(request *http.Request) *Route {
 	for _, route := range r.Routes {
 		matchesAll := true
 
@@ -48,9 +47,12 @@ func (r *ReverseProxyServer) Build() http.Handler {
 }
 
 func (r *ReverseProxyServer) buildRoutes(config config.Config) {
+
+	log.Println("Building reverse proxies")
 	for _,configRoute := range config.Proxy {
 		var matchers []Matcher
 
+		log.Println("Reroute => ", configRoute.Scheme, configRoute.Host, configRoute.Path)
 		for _, m := range configRoute.Rules {
 			var newMatcher Matcher
 			var err error
@@ -70,7 +72,7 @@ func (r *ReverseProxyServer) buildRoutes(config config.Config) {
 
 			if err == nil {
 				matchers = append(matchers, newMatcher)
-				log.Println("Added matcher ", m.Type, m.Pattern)
+				log.Println("Added matcher ", m.String())
 			} else {
 				log.Fatal(err)
 			}
@@ -109,7 +111,7 @@ func (r *ReverseProxyServer) cacheMiddleware(handler http.Handler) http.Handler 
 func (r *ReverseProxyServer) buildProxy() http.Handler {
 	return &httputil.ReverseProxy{
 		Director: func(request *http.Request) {
-			route := r.FindRoute(request)
+			route := r.findRoute(request)
 			if route != nil {
 				route.Upstream.TransformRequest(request)
 			}

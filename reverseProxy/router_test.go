@@ -21,7 +21,7 @@ func TestRouter_BuildRoutes(t *testing.T) {
 
 	router := ReverseProxyServer{}
 
-	router.BuildRoutes(mockConfig)
+	router.buildRoutes(mockConfig)
 
 	assert.Equal(t, len(router.Routes), 2)
 	assert.Equal(t, router.Routes[0].Upstream.Path, "/example")
@@ -61,9 +61,9 @@ func TestRouter_BuildProxy(t *testing.T) {
 	}}
 
 	router := ReverseProxyServer{}
-	router.BuildRoutes(mockConfig)
+	router.buildRoutes(mockConfig)
 
-	proxy := router.BuildProxy()
+	proxy := router.buildProxy()
 
 	server := httptest.NewUnstartedServer(proxy)
 	l1, _ := net.Listen("tcp", "localhost:5186")
