@@ -10,3 +10,6 @@ run-server: clean create-dist
 
 gofmt:
 	@ go fmt .
+
+gotest:
+	@ go test ./...
