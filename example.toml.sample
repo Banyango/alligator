@@ -1,0 +1,10 @@
+[[Proxy]]
+Path = "/images"
+Host = "www.google.com"
+Scheme= "http"
+	[[Proxy.Rules]]
+		Type = "host"
+		Pattern = ["www.facebook.com", "www.instagram.com"]
+	[[Proxy.Rules]]
+		Type = "path"
+		Pattern = [".hello/."]
