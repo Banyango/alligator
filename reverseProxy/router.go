@@ -130,6 +130,8 @@ func (r *ReverseProxyServer) buildProxy() http.Handler {
 			route := r.findRoute(request)
 			if route != nil {
 				route.Upstream.TransformRequest(request)
+			} else {
+				log.Println("No matches found for request", request)
 			}
 		},
 	}

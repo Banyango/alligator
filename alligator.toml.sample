@@ -1,12 +1,12 @@
 CacheSize = 10485760
 
 [[Proxy]]
-Path = "/whyhellothere"
+Path = "/hello"
 Host = "localhost:5000"
 Scheme= "http"
 	[[Proxy.Rules]]
 		Type = "host"
-		Pattern = ["localhost:8080"]
+		Pattern = ["[localhost:8080]"]
 	[[Proxy.Rules]]
 		Type = "path"
-		Pattern = [".hello/."]
+		Pattern = ["/hello/"]
