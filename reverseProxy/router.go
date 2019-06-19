@@ -6,7 +6,9 @@ import (
 	"github.com/Banyango/Alligator/endpoint"
 	"log"
 	"net/http"
+	"net/http/httptest"
 	"net/http/httputil"
+	"strings"
 )
 
 type Route struct {
@@ -27,23 +29,57 @@ func New(config config.Config) *ReverseProxyServer {
 	return &server
 }
 
-func (r *ReverseProxyServer) findRoute(request *http.Request) *Route {
-	for _, route := range r.Routes {
-		matchesAll := true
-
-		for _, matcher := range route.Matchers {
-			matchesAll = matchesAll && matcher.Matches(request)
-		}
-
-		if matchesAll {
-			return route
-		}
-	}
-	return nil
-}
-
 func (r *ReverseProxyServer) Build() http.Handler {
 	return r.cacheMiddleware(r.buildProxy())
+}
+
+func (r *ReverseProxyServer) cacheMiddleware(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
+		if bytes, err := r.Cache.Get([]byte(request.URL.String())); err == nil {
+			responseCache, err := cache.ResponseCacheFromBytes(bytes)
+			if err != nil {
+				log.Println(err)
+			}
+			for k, v := range responseCache.HeaderMap {
+				w.Header().Set(k, strings.Join(v, ","))
+			}
+			w.WriteHeader(responseCache.Code)
+			_, err = w.Write(responseCache.Body)
+			if err != nil {
+				log.Println(err)
+			}
+			log.Println("Writing from cache: ", request)
+			return
+		}
+
+		recorder := httptest.NewRecorder()
+		handler.ServeHTTP(recorder, request)
+
+		if recorder.Code < 400 {
+			key := []byte(request.URL.String())
+
+			response := cache.ResponseCache{
+				Body:recorder.Body.Bytes(),
+				HeaderMap:recorder.Result().Header,
+				Code:recorder.Code,
+			}
+
+			if bytes, err := cache.ResponseCacheToBytes(&response); err == nil {
+				if err := r.Cache.Set(key,bytes); err != nil {
+					log.Println(err)
+				}
+			} else {
+				log.Println(err)
+			}
+		}
+
+		for k, v := range recorder.Result().Header {
+			w.Header().Set(k, strings.Join(v, ","))
+		}
+		w.WriteHeader(recorder.Code)
+		w.Write(recorder.Body.Bytes())
+		return
+	})
 }
 
 func (r *ReverseProxyServer) buildRoutes(config config.Config) {
@@ -88,26 +124,6 @@ func (r *ReverseProxyServer) buildRoutes(config config.Config) {
 
 }
 
-func (r *ReverseProxyServer) cacheMiddleware(handler http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, request *http.Request) {
-
-		requestBytes, err := httputil.DumpRequest(request, true)
-		if err != nil {
-			log.Println(err)
-		} else {
-			if bytes, err := r.Cache.Get(requestBytes); err == nil {
-				_, err := w.Write(bytes)
-				if err != nil {
-					log.Println(err)
-				}
-				return
-			}
-		}
-
-		handler.ServeHTTP(w, request)
-	})
-}
-
 func (r *ReverseProxyServer) buildProxy() http.Handler {
 	return &httputil.ReverseProxy{
 		Director: func(request *http.Request) {
@@ -115,24 +131,21 @@ func (r *ReverseProxyServer) buildProxy() http.Handler {
 			if route != nil {
 				route.Upstream.TransformRequest(request)
 			}
-		}, ModifyResponse: func(response *http.Response) error {
-			requestBytes, errRequest := httputil.DumpRequest(response.Request, true)
-			if errRequest != nil {
-				log.Println(errRequest)
-			}
-
-			responseBytes, errResponse := httputil.DumpResponse(response, true)
-			if errResponse != nil {
-				log.Println(errResponse)
-			}
-
-			if errRequest == nil && errResponse == nil {
-				if err := r.Cache.Set(requestBytes,responseBytes); err != nil {
-					log.Println(err)
-				}
-			}
-
-			return nil
 		},
 	}
+}
+
+func (r *ReverseProxyServer) findRoute(request *http.Request) *Route {
+	for _, route := range r.Routes {
+		matchesAll := true
+
+		for _, matcher := range route.Matchers {
+			matchesAll = matchesAll && matcher.Matches(request)
+		}
+
+		if matchesAll {
+			return route
+		}
+	}
+	return nil
 }

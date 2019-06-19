@@ -4,6 +4,10 @@ import (
 	"github.com/coocood/freecache"
 )
 
+const(
+	DEFAULT_CACHE_SIZE = 10*1024*1024
+)
+
 type Cache struct {
 	ExpiryTime int
 	memoryCache *freecache.Cache
