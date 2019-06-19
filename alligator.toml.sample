@@ -6,7 +6,7 @@ Host = "localhost:5000"
 Scheme= "http"
 	[[Proxy.Rules]]
 		Type = "host"
-		Pattern = ["localhost:3000"]
+		Pattern = ["localhost:8080"]
 	[[Proxy.Rules]]
 		Type = "path"
 		Pattern = [".hello/."]

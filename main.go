@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/gommon/log"
 	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 const banner = `
@@ -17,11 +18,17 @@ const banner = `
 \____|__  /____/____/__\___  (____  /__|  \____/|__|   
         \/            /_____/     \/                   
 
-Reverse Proxy Starting up on port 8080
 `
 
 func main() {
 	fmt.Println(banner)
+
+	addr, hasPort := os.LookupEnv("addr")
+	if !hasPort {
+		addr = ":8080"
+	}
+
+	fmt.Println("Reverse Proxy Starting up at", addr)
 
 	tomlBytes, err := ioutil.ReadFile("./alligator.toml")
 	if err != nil {
@@ -35,7 +42,7 @@ func main() {
 
 	handler := reverseProxy.New(*conf)
 
-	if err := http.ListenAndServe(":8080", handler.Build()); err != nil {
+	if err := http.ListenAndServe(addr, handler.Build()); err != nil {
 		log.Fatal(err)
 	}
 }
